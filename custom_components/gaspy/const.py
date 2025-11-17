@@ -15,11 +15,14 @@ ISSUEURL: Final = "https://github.com/seanlinmt/hacs_gaspy/issues"
 PLATFORMS: Final = [Platform.SENSOR]
 
 # Configuration and options
-CONF_USERNAME: Final = "username"
-CONF_PASSWORD: Final = "password"
 CONF_LATITUDE: Final = "latitude"
 CONF_LONGITUDE: Final = "longitude"
 CONF_DISTANCE: Final = "distance"
+
+# OAuth2 constants
+OAUTH2_AUTHORIZE: Final = "https://accounts.google.com/o/oauth2/v2/auth"
+OAUTH2_TOKEN: Final = "https://oauth2.googleapis.com/token"
+OAUTH2_SCOPES: Final = ["https://www.googleapis.com/auth/userinfo.email"]
 
 # Defaults
 DEFAULT_NAME: Final = DOMAIN

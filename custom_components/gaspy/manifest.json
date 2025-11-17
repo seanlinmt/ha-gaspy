@@ -5,9 +5,10 @@
   "documentation": "https://github.com/seanlinmt/hacs_gaspy",
   "issue_tracker": "https://github.com/seanlinmt/hacs_gaspy/issues",
   "codeowners": ["@seanlinmt"],
-  "requirements": [],
+  "requirements": ["google-auth-oauthlib>=0.4.6,<2"],
   "iot_class": "cloud_polling",
   "dependencies": [],
+  "after_dependencies": ["application_credentials"],
   "homeassistant": "2023.1.0",
   "config_flow": true
 }

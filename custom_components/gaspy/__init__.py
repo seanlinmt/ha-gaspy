@@ -20,7 +20,7 @@ from .const import (
     DOMAIN,
     CONF_USERNAME,
     CONF_PASSWORD,
-    CONF_MAXIMUM,
+    CONF_DISTANCE,
     CONF_LATITUDE,
     CONF_LONGITUDE,
     PLATFORMS,
@@ -48,7 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
-    distance = entry.data.get(CONF_MAXIMUM)
+    distance = entry.data.get(CONF_DISTANCE)
     latitude = entry.data.get(CONF_LATITUDE)
     longitude = entry.data.get(CONF_LONGITUDE)
 

@@ -57,20 +57,20 @@ class GaspyFuelPriceSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the state of the sensor."""
-        if self.coordinator.data and self.coordinator.data['data']:
-            for station in self.coordinator.data['data']:
-                return float(station['current_price']) / 100
+        if self.coordinator.data and self.coordinator.data.get('data'):
+            lowest_price_station = min(self.coordinator.data['data'], key=lambda x: x['current_price'])
+            return float(lowest_price_station['current_price']) / 100
         return None
 
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
-        if self.coordinator.data and self.coordinator.data['data']:
-            for station in self.coordinator.data['data']:
-                return {
-                    'Fuel Type Name': station['fuel_type_name'],
-                    'Station Name': station['station_name'],
-                    'Distance': station['distance'],
-                    'Last Updated': station['date_updated']
-                }
+        if self.coordinator.data and self.coordinator.data.get('data'):
+            lowest_price_station = min(self.coordinator.data['data'], key=lambda x: x['current_price'])
+            return {
+                'Fuel Type Name': lowest_price_station['fuel_type_name'],
+                'Station Name': lowest_price_station['station_name'],
+                'Distance': lowest_price_station['distance'],
+                'Last Updated': lowest_price_station['date_updated']
+            }
         return {}

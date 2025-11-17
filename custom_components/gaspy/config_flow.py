@@ -15,10 +15,9 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_LATITUDE,
     CONF_LONGITUDE,
-    CONF_MAXIMUM
 )
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_DISTANCE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
-        vol.Required(CONF_MAXIMUM, default=10): vol.All(vol.Coerce(float), vol.Range(min=1.0, max=100.0)),
+        vol.Required(CONF_DISTANCE, default=10): vol.All(vol.Coerce(float), vol.Range(min=1.0, max=100.0)),
         vol.Required(CONF_LATITUDE): str,
         vol.Required(CONF_LONGITUDE): str
     }

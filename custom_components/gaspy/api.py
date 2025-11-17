@@ -1,7 +1,7 @@
 """Gaspy API"""
 import asyncio
 import socket
-from typing import final
+from typing import Any, Dict, Optional, Union
 import aiohttp
 import async_timeout
 
@@ -25,8 +25,6 @@ class GaspyApi:
 
     async def login(self) -> bool:
         """Login to the Gaspy API."""
-        result = False
-
         # Initialise the cookie jar
         headers = {
             "user-agent": "okhttp/3.10.0"
@@ -51,9 +49,10 @@ class GaspyApi:
             data
         )
 
-        return "id" in response
+        return isinstance(response, dict) and "id" in response
 
-    async def get_prices(self):
+    async def get_prices(self) -> Dict[str, Any]:
+        """Get fuel prices from the API."""
         headers = {
             "user-agent": "okhttp/3.10.0"
         }
@@ -75,12 +74,18 @@ class GaspyApi:
             data
         )
         
-        if not response['data']:
+        if not isinstance(response, dict) or not response.get('data'):
             LOGGER.warning('Fetched prices successfully, but did not find any')
             
         return response
 
-    async def async_request(self, method, url, headers, data):
+    async def async_request(
+        self, 
+        method: str, 
+        url: str, 
+        headers: Dict[str, str], 
+        data: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Make a request to the API."""
         try:
             async with async_timeout.timeout(10):
@@ -88,7 +93,7 @@ class GaspyApi:
                     method=method,
                     url=url,
                     headers=headers,
-                    data=data,
+                    json=data,
                 )
                 if response.status in (401, 403):
                     raise GaspyApiAuthenticationError(

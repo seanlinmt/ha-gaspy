@@ -59,7 +59,20 @@ class GaspyFuelPriceSensor(CoordinatorEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get('data'):
-            self._lowest_price_station = min(self.coordinator.data['data'], key=lambda x: x['current_price'])
+            try:
+                # Filter out stations without current_price and find the lowest
+                valid_stations = [
+                    station for station in self.coordinator.data['data'] 
+                    if station.get('current_price') is not None
+                ]
+                if valid_stations:
+                    self._lowest_price_station = min(valid_stations, key=lambda x: x['current_price'])
+                else:
+                    self._lowest_price_station = None
+            except (KeyError, TypeError):
+                self._lowest_price_station = None
+        else:
+            self._lowest_price_station = None
         self.async_write_ha_state()
 
     @property
@@ -74,9 +87,9 @@ class GaspyFuelPriceSensor(CoordinatorEntity, SensorEntity):
         """Return the state attributes of the sensor."""
         if self._lowest_price_station:
             return {
-                'Fuel Type Name': self._lowest_price_station['fuel_type_name'],
-                'Station Name': self._lowest_price_station['station_name'],
-                'Distance': self._lowest_price_station['distance'],
-                'Last Updated': self._lowest_price_station['date_updated']
+                'Fuel Type Name': self._lowest_price_station.get('fuel_type_name'),
+                'Station Name': self._lowest_price_station.get('station_name'),
+                'Distance': self._lowest_price_station.get('distance'),
+                'Last Updated': self._lowest_price_station.get('date_updated')
             }
         return {}

@@ -9,7 +9,7 @@ LOGGER: Final = logging.getLogger(__name__)
 # Basic information about the integration
 DOMAIN: Final = "gaspy"
 NAME: Final = "Gaspy"
-ISSUEURL: Final = "https://github.com/codyc1515/hacs_gaspy/issues"
+ISSUEURL: Final = "https://github.com/seanlinmt/hacs_gaspy/issues"
 
 # Platforms
 PLATFORMS: Final = [Platform.SENSOR]

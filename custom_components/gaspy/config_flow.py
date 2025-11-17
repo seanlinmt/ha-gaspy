@@ -21,13 +21,29 @@ from .const import DOMAIN, CONF_DISTANCE
 
 _LOGGER = logging.getLogger(__name__)
 
+def validate_latitude(value):
+    """Validate latitude is between -90 and 90."""
+    try:
+        lat = float(value)
+        return -90 <= lat <= 90
+    except (ValueError, TypeError):
+        return False
+
+def validate_longitude(value):
+    """Validate longitude is between -180 and 180."""
+    try:
+        lon = float(value)
+        return -180 <= lon <= 180
+    except (ValueError, TypeError):
+        return False
+
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
         vol.Required(CONF_DISTANCE, default=10): vol.All(vol.Coerce(float), vol.Range(min=1.0, max=100.0)),
-        vol.Required(CONF_LATITUDE): str,
-        vol.Required(CONF_LONGITUDE): str
+        vol.Required(CONF_LATITUDE): vol.All(str, validate_latitude),
+        vol.Required(CONF_LONGITUDE): vol.All(str, validate_longitude)
     }
 )
 

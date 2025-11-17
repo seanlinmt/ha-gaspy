@@ -7,5 +7,7 @@
   "codeowners": ["@codyc1515"],
   "requirements": [],
   "iot_class": "cloud_polling",
-  "dependencies": []
+  "dependencies": [],
+  "homeassistant": "2023.1.0",
+  "config_flow": true
 }

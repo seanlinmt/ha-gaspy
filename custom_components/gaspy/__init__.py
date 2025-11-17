@@ -6,7 +6,7 @@ import aiohttp
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, Config
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
 from homeassistant.const import Platform

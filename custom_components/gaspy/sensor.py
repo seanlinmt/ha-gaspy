@@ -7,7 +7,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -53,24 +53,30 @@ class GaspyFuelPriceSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{entry.entry_id}_fuel_price"
         self._attr_name = f"{NAME} Fuel Price"
         self._attr_icon = "mdi:gas-station"
+        self._lowest_price_station = None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get('data'):
+            self._lowest_price_station = min(self.coordinator.data['data'], key=lambda x: x['current_price'])
+        self.async_write_ha_state()
 
     @property
     def native_value(self):
         """Return the state of the sensor."""
-        if self.coordinator.data and self.coordinator.data.get('data'):
-            lowest_price_station = min(self.coordinator.data['data'], key=lambda x: x['current_price'])
-            return float(lowest_price_station['current_price']) / 100
+        if self._lowest_price_station:
+            return float(self._lowest_price_station['current_price']) / 100
         return None
 
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
-        if self.coordinator.data and self.coordinator.data.get('data'):
-            lowest_price_station = min(self.coordinator.data['data'], key=lambda x: x['current_price'])
+        if self._lowest_price_station:
             return {
-                'Fuel Type Name': lowest_price_station['fuel_type_name'],
-                'Station Name': lowest_price_station['station_name'],
-                'Distance': lowest_price_station['distance'],
-                'Last Updated': lowest_price_station['date_updated']
+                'Fuel Type Name': self._lowest_price_station['fuel_type_name'],
+                'Station Name': self._lowest_price_station['station_name'],
+                'Distance': self._lowest_price_station['distance'],
+                'Last Updated': self._lowest_price_station['date_updated']
             }
         return {}

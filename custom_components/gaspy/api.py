@@ -1,22 +1,59 @@
 """Gaspy API"""
-import logging
-from datetime import datetime, timedelta
-import requests
-import json
+import asyncio
+import socket
+from typing import final
+import aiohttp
+import async_timeout
 
-_LOGGER = logging.getLogger(__name__)
+from .const import LOGGER
+
+class GaspyApiError(Exception):
+    """Exception to indicate a general API error."""
+
+class GaspyApiAuthenticationError(GaspyApiError):
+    """Exception to indicate an authentication error."""
 
 class GaspyApi:
-    def __init__(self, username, password, distance, latitude, longitude):
+    def __init__(self, username, password, distance, latitude, longitude, session: aiohttp.ClientSession):
         self._username = username
         self._password = password
         self._distance = distance
         self._latitude = latitude
         self._longitude = longitude
-        self._session = requests.Session()
+        self._session = session
         self._url_base = 'https://gaspy.nz/api/v1/'
 
-    def get_prices(self):
+    async def login(self) -> bool:
+        """Login to the Gaspy API."""
+        result = False
+
+        # Initialise the cookie jar
+        headers = {
+            "user-agent": "okhttp/3.10.0"
+        }
+
+        await self.async_request(
+            "get",
+            self._url_base + "Public/init",
+            headers,
+            None
+        )
+
+        data = {
+            "email": self._username,
+            "password": self._password
+        }
+
+        response = await self.async_request(
+            "post",
+            self._url_base + "Public/login",
+            headers,
+            data
+        )
+
+        return "id" in response
+
+    async def get_prices(self):
         headers = {
             "user-agent": "okhttp/3.10.0"
         }
@@ -30,41 +67,43 @@ class GaspyApi:
             'order_by': 'price',
             'start': '0'
         }
-        response = self._session.post(self._url_base + "FuelPrice/searchFuelPrices", headers=headers, data=data)
         
-        if response.status_code == requests.codes.ok:
-            data = response.json()
-            if not data:
-                _LOGGER.warning('Fetched prices successfully, but did not find any')
-            return data
-        else:
-            _LOGGER.error('Failed to fetch prices')
-            return data
-
-    def login(self):
-        """Login to the Gaspy API."""
-        result = False
+        response = await self.async_request(
+            "post",
+            self._url_base + "FuelPrice/searchFuelPrices",
+            headers,
+            data
+        )
         
-        # Initialise the cookie jar
-        headers = {
-            "user-agent": "okhttp/3.10.0"
-        }
-        initResult = self._session.get(self._url_base + "Public/init", headers=headers)
-
-        if initResult.status_code == requests.codes.ok:
-            # Attempt to login
-            data = {
-                "email": self._username,
-                "password": self._password
-            }
-            loginResult = self._session.post(self._url_base + "Public/login", headers=headers, data=data)
+        if not response['data']:
+            LOGGER.warning('Fetched prices successfully, but did not find any')
             
-            if loginResult.status_code == requests.codes.ok:
-                _LOGGER.debug('Successfully logged in')
-                #self.get_prices()
-                result = True
-            else:
-                _LOGGER.error("login failed", 2)
-        else:
-            _LOGGER.error("login failed", 1)
-        return result
+        return response
+
+    async def async_request(self, method, url, headers, data):
+        """Make a request to the API."""
+        try:
+            async with async_timeout.timeout(10):
+                response = await self._session.request(
+                    method=method,
+                    url=url,
+                    headers=headers,
+                    data=data,
+                )
+                if response.status in (401, 403):
+                    raise GaspyApiAuthenticationError(
+                        "Invalid credentials",
+                    )
+                response.raise_for_status()
+                return await response.json()
+        except asyncio.TimeoutError as exception:
+            raise GaspyApiError(
+                "Timeout error fetching information",
+            ) from exception
+        except (aiohttp.ClientError, socket.gaierror) as exception:
+            raise GaspyApiError(
+                "Error fetching information",
+            ) from exception
+        except Exception as exception:
+            LOGGER.error(f"Something really wrong happened! - {exception}")
+            raise exception from exception

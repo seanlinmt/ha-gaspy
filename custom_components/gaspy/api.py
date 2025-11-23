@@ -17,6 +17,12 @@ class GaspyApi:
         self._longitude = longitude
         self._session = requests.Session()
         self._url_base = "https://gaspy.nz/api/v1/"
+        self._is_logged_in = False
+
+    @property
+    def is_logged_in(self):
+        """Return True if currently logged in."""
+        return self._is_logged_in
 
     def get_prices(self):
         """Get fuel prices."""
@@ -62,6 +68,7 @@ class GaspyApi:
             if login_result.status_code == requests.codes.ok:
                 _LOGGER.debug("Successfully logged in")
                 # self.get_prices()
+                self._is_logged_in = True
                 result = True
             else:
                 _LOGGER.error("login failed: %s", 2)

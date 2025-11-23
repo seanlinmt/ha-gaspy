@@ -81,7 +81,8 @@ class GaspyFuelPriceSensor(Entity):
         self._state_attributes = {}
         self._state_class = "measurement"
         self._unit_of_measurement = "$"
-        self._unique_id = DOMAIN
+        self._unit_of_measurement = "$"
+        self._unique_id = f"{DOMAIN}_{api._latitude}_{api._longitude}"
         self._api = api
 
     @property
@@ -122,7 +123,7 @@ class GaspyFuelPriceSensor(Entity):
     def update(self):
         """Update the sensor."""
         _LOGGER.debug("Checking login validity")
-        if self._api.login():
+        if self._api.is_logged_in or self._api.login():
             # Get todays date
             _LOGGER.debug("Fetching prices")
             response = self._api.get_prices()

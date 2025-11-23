@@ -38,9 +38,9 @@ sys.modules["homeassistant.const"].CONF_LATITUDE = "latitude"
 sys.modules["homeassistant.const"].CONF_LONGITUDE = "longitude"
 
 # Import the code to verify syntax and basic logic
-from custom_components.gaspy.api import GaspyApi
-from custom_components.gaspy.sensor import GaspyFuelPriceSensor
-from custom_components.gaspy.const import DOMAIN
+from custom_components.gaspy.api import GaspyApi  # noqa: E402
+from custom_components.gaspy.sensor import GaspyFuelPriceSensor  # noqa: E402
+from custom_components.gaspy.const import DOMAIN  # noqa: E402
 
 
 async def test_api_login_state():

@@ -39,7 +39,7 @@ async def validate_input(hass: core.HomeAssistant, data):
         data[CONF_LONGITUDE],
     )
 
-    result = await hass.async_add_executor_job(api.login)
+    result = await api.login()
 
     if not result:
         raise InvalidAuth

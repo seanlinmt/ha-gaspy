@@ -120,13 +120,13 @@ class GaspyFuelPriceSensor(Entity):
         """Return the unique id."""
         return self._unique_id
 
-    def update(self):
+    async def async_update(self):
         """Update the sensor."""
         _LOGGER.debug("Checking login validity")
-        if self._api.is_logged_in or self._api.login():
+        if self._api.is_logged_in or await self._api.login():
             # Get todays date
             _LOGGER.debug("Fetching prices")
-            response = self._api.get_prices()
+            response = await self._api.get_prices()
             if response["data"]:
                 _LOGGER.debug(response["data"])
                 for station in response["data"]:

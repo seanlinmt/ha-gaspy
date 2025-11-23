@@ -1,5 +1,6 @@
 import sys
-from unittest.mock import MagicMock
+import asyncio
+from unittest.mock import MagicMock, AsyncMock
 
 # Mock Home Assistant modules
 sys.modules["homeassistant"] = MagicMock()
@@ -27,10 +28,6 @@ sys.modules["homeassistant.helpers.config_validation"] = MagicMock()
 sys.modules["homeassistant.components"] = MagicMock()
 sys.modules["homeassistant.components.sensor"] = MagicMock()
 
-# Mock requests
-sys.modules["requests"] = MagicMock()
-sys.modules["requests"].codes.ok = 200
-
 # Mock voluptuous
 sys.modules["voluptuous"] = MagicMock()
 
@@ -46,21 +43,25 @@ from custom_components.gaspy.sensor import GaspyFuelPriceSensor
 from custom_components.gaspy.const import DOMAIN
 
 
-def test_api_login_state():
+async def test_api_login_state():
     print("Testing API login state...")
     api = GaspyApi("user", "pass", 10, 1.0, 2.0)
     assert api.is_logged_in is False, "Should not be logged in initially"
 
-    # Mock session
-    api._session = MagicMock()
+    # Mock session and responses
+    mock_session = MagicMock()
+    mock_response = AsyncMock()
+    mock_response.status = 200
+    mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_response.__aexit__ = AsyncMock(return_value=None)
 
-    # Mock successful login
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    api._session.get.return_value = mock_response
-    api._session.post.return_value = mock_response
+    mock_session.get.return_value = mock_response
+    mock_session.post.return_value = mock_response
+    mock_session.closed = False
 
-    result = api.login()
+    api._session = mock_session
+
+    result = await api.login()
     assert result is True, "Login should succeed"
     assert api.is_logged_in is True, "Should be logged in after success"
     print("API login state test passed!")
@@ -78,16 +79,16 @@ def test_sensor_unique_id():
     print("Sensor Unique ID test passed!")
 
 
-def test_sensor_update_logic():
+async def test_sensor_update_logic():
     print("Testing Sensor Update Logic...")
     api = GaspyApi("user", "pass", 10, 1.0, 2.0)
-    api.login = MagicMock(return_value=True)
-    api.get_prices = MagicMock(return_value={"data": []})
+    api.login = AsyncMock(return_value=True)
+    api.get_prices = AsyncMock(return_value={"data": []})
 
     sensor = GaspyFuelPriceSensor("Gaspy Sensor", api)
 
     # First update, should call login
-    sensor.update()
+    await sensor.async_update()
     api.login.assert_called_once()
 
     # Manually set logged in state (since our mock didn't set the real flag because we mocked the method)
@@ -95,17 +96,24 @@ def test_sensor_update_logic():
     api.login.reset_mock()
 
     # Second update, should NOT call login because is_logged_in is True
-    sensor.update()
+    await sensor.async_update()
     api.login.assert_not_called()
     print("Sensor Update Logic test passed!")
 
 
-if __name__ == "__main__":
+async def main():
     try:
-        test_api_login_state()
+        await test_api_login_state()
         test_sensor_unique_id()
-        test_sensor_update_logic()
+        await test_sensor_update_logic()
         print("\nAll verification tests passed!")
     except Exception as e:
         print(f"\nVerification failed: {e}")
+        import traceback
+
+        traceback.print_exc()
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -8,7 +8,7 @@
     "@seanlinmt"
   ],
   "requirements": [
-    "requests"
+    "aiohttp"
   ],
   "iot_class": "cloud_polling",
   "dependencies": [],

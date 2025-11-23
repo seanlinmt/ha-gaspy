@@ -1,5 +1,12 @@
-"""Constants for the Gaspy sensors"""
+"""Constants for the Gaspy integration."""
 
-SENSOR_NAME = 'Gaspy Fuel Price'
+from homeassistant.const import (
+    CONF_USERNAME,
+    CONF_PASSWORD,
+    CONF_LATITUDE,
+    CONF_LONGITUDE,
+)
 
-DOMAIN = 'gaspy'
+CONF_DISTANCE = "distance"
+SENSOR_NAME = "Gaspy Fuel Price"
+DOMAIN = "gaspy"
